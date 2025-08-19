@@ -1,18 +1,21 @@
+// assets/script.js
+
 const MAPTILER_KEY = "zouFxW02vyhPO2yBO8SN";
 const STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
-const GEOJSON_URL = "/data/mappychange_walthamstow.geojson";
+const GEOJSON_URL = "data/mappychange_walthamstow.geojson"; // relative path
 const FORM_URL = "https://forms.gle/VUFTbD6G8dLh2DrD7";
 const DEFAULT_BOUNDS = [[-0.064, 51.556], [0.028, 51.615]];
-const MARKER_ICON = "assets/pin.png";
+const MARKER_ICON = "assets/pin.png"; // ✅ FIXED relative path
 
+// Init map
 const map = new maplibregl.Map({
   container: "map",
   style: STYLE_URL,
-  bounds: DEFAULT_BOUNDS
+  bounds: DEFAULT_BOUNDS,
 });
 map.addControl(new maplibregl.NavigationControl());
 
-// GeoJSON fetcher
+// Load GeoJSON
 async function fetchGeoJSON() {
   try {
     const res = await fetch(GEOJSON_URL, { cache: "no-store" });
@@ -26,13 +29,14 @@ async function fetchGeoJSON() {
         {
           type: "Feature",
           geometry: { type: "Point", coordinates: [-0.0197, 51.5856] },
-          properties: {
-            name: "Test Hall",
-            address: "Test Road, E17",
-            category: "Test"
-          }
-        }
-      ]
+          properties: { name: "Test Hall", address: "Test Road, E17" },
+        },
+        {
+          type: "Feature",
+          geometry: { type: "Point", coordinates: [-0.0289, 51.5902] },
+          properties: { name: "Civic Centre", address: "Forest Rd, E17" },
+        },
+      ],
     };
   }
 }
@@ -47,11 +51,12 @@ document.getElementById("locate").addEventListener("click", () => {
   }
 });
 
-// Suggest button → Google Form
+// Suggest place button
 document
   .getElementById("fab-suggest")
   .addEventListener("click", () => window.open(FORM_URL, "_blank"));
 
+// Load data + layers
 map.on("load", async () => {
   const data = await fetchGeoJSON();
 
@@ -60,7 +65,7 @@ map.on("load", async () => {
     data,
     cluster: true,
     clusterRadius: 50,
-    clusterMaxZoom: 14
+    clusterMaxZoom: 14,
   });
 
   // Cluster circles
@@ -73,18 +78,21 @@ map.on("load", async () => {
       "circle-color": "#111",
       "circle-radius": ["step", ["get", "point_count"], 16, 10, 22, 25, 28],
       "circle-stroke-color": "#ffd300",
-      "circle-stroke-width": 2
-    }
+      "circle-stroke-width": 2,
+    },
   });
 
-  // Cluster labels
+  // Cluster counts
   map.addLayer({
     id: "cluster-count",
     type: "symbol",
     source: "places",
     filter: ["has", "point_count"],
-    layout: { "text-field": ["get", "point_count_abbreviated"], "text-size": 12 },
-    paint: { "text-color": "#fff" }
+    layout: {
+      "text-field": ["get", "point_count_abbreviated"],
+      "text-size": 12,
+    },
+    paint: { "text-color": "#fff" },
   });
 
   // Shadow under pins
@@ -96,11 +104,11 @@ map.on("load", async () => {
     paint: {
       "circle-color": "rgba(0,0,0,0.18)",
       "circle-radius": 10,
-      "circle-blur": 0.6
-    }
+      "circle-blur": 0.6,
+    },
   });
 
-  // Custom pin image
+  // ✅ Load custom marker
   map.loadImage(MARKER_ICON, (error, image) => {
     if (!error && image) {
       if (!map.hasImage("custom-pin")) map.addImage("custom-pin", image);
@@ -112,11 +120,11 @@ map.on("load", async () => {
         layout: {
           "icon-image": "custom-pin",
           "icon-size": 0.06,
-          "icon-allow-overlap": true
-        }
+          "icon-allow-overlap": true,
+        },
       });
     } else {
-      console.warn("Custom pin not found, fallback to circle markers.");
+      console.warn("Custom pin not found, falling back to circle markers.");
       map.addLayer({
         id: "unclustered",
         type: "circle",
@@ -126,102 +134,78 @@ map.on("load", async () => {
           "circle-color": "#ffd300",
           "circle-radius": 8,
           "circle-stroke-color": "#111",
-          "circle-stroke-width": 2
-        }
+          "circle-stroke-width": 2,
+        },
       });
     }
   });
 
-  // ✅ Popups for unclustered points
+  // ✅ Popups on pin click
   map.on("click", "unclustered", (e) => {
     const coords = e.features[0].geometry.coordinates.slice();
-    const props = e.features[0].properties;
-
-    const popupHtml = `
-      <strong>${props.name || "Unnamed"}</strong><br>
-      ${props.address || ""}<br>
-      <em>${props.category || ""}</em>
-    `;
+    const { name, address, category } = e.features[0].properties;
 
     new maplibregl.Popup()
       .setLngLat(coords)
-      .setHTML(popupHtml)
+      .setHTML(
+        `<strong>${name}</strong><br>${address || ""}<br><em>${category ||
+          ""}</em>`
+      )
       .addTo(map);
   });
 
-  // Cursor pointer on hover
+  // ✅ Cursor pointer on hover
   map.on("mouseenter", "unclustered", () => {
     map.getCanvas().style.cursor = "pointer";
   });
   map.on("mouseleave", "unclustered", () => {
     map.getCanvas().style.cursor = "";
   });
-
-// ✅ Popups for unclustered points
-map.on("click", "unclustered", (e) => {
-  const coords = e.features[0].geometry.coordinates.slice();
-  const props = e.features[0].properties;
-
-  const popupHtml = `
-    <strong>${props.name || "Unnamed"}</strong><br>
-    ${props.address || ""}<br>
-    <em>${props.category || ""}</em>
-  `;
-
-  new maplibregl.Popup()
-    .setLngLat(coords)
-    .setHTML(popupHtml)
-    .addTo(map);
 });
 
-// Cursor pointer on hover
-map.on("mouseenter", "unclustered", () => {
-  map.getCanvas().style.cursor = "pointer";
-});
-map.on("mouseleave", "unclustered", () => {
-  map.getCanvas().style.cursor = "";
-});
-
-// 🔍 SEARCH FUNCTION
+// ✅ Search box: match by name, address, OR category
 const searchInput = document.getElementById("search");
 if (searchInput) {
   searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
-      const query = e.target.value.trim().toLowerCase();
+      const query = searchInput.value.trim().toLowerCase();
       if (!query) return;
 
-      // get all features from GeoJSON source
-      const features = map.querySourceFeatures("places");
+      fetch(GEOJSON_URL)
+        .then((res) => res.json())
+        .then((data) => {
+          const match = data.features.find((f) => {
+            const { name, address, category } = f.properties;
+            return (
+              (name && name.toLowerCase().includes(query)) ||
+              (address && address.toLowerCase().includes(query)) ||
+              (category && category.toLowerCase().includes(query))
+            );
+          });
 
-      let match = features.find((f) => {
-        const props = f.properties;
-        return (
-          (props.name && props.name.toLowerCase().includes(query)) ||
-          (props.address && props.address.toLowerCase().includes(query))
-        );
-      });
-
-      if (match) {
-        const coords = match.geometry.coordinates;
-        const props = match.properties;
-
-        // fly to the location
-        map.flyTo({ center: coords, zoom: 16 });
-
-        // popup
-        new maplibregl.Popup()
-          .setLngLat(coords)
-          .setHTML(
-            `<strong>${props.name}</strong><br>${props.address || ""}<br><em>${
-              props.category || ""
-            }</em>`
-          )
-          .addTo(map);
-      } else {
-        alert("No matching place found");
-      }
+          if (match) {
+            map.flyTo({
+              center: match.geometry.coordinates,
+              zoom: 16,
+            });
+            new maplibregl.Popup()
+              .setLngLat(match.geometry.coordinates)
+              .setHTML(
+                `<strong>${match.properties.name}</strong><br>${match.properties.address ||
+                  ""}<br><em>${match.properties.category || ""}</em>`
+              )
+              .addTo(map);
+          } else {
+            alert("No results found.");
+          }
+        });
     }
   });
 }
-  
+
+
+// Catch missing icons
+map.on("styleimagemissing", (e) => {
+  console.warn("Missing image:", e.id);
 });
+
