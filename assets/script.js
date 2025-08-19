@@ -163,8 +163,25 @@ map.on("load", async () => {
   });
 });
 
-// ✅ Search box: match by name, address, OR category
+// ✅ Haversine distance helper
+function getDistance(coord1, coord2) {
+  const [lon1, lat1] = coord1;
+  const [lon2, lat2] = coord2;
+  const R = 6371; // km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ✅ Search box with results list
 const searchInput = document.getElementById("search");
+const resultsDiv = document.getElementById("results");
+
 if (searchInput) {
   searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") {
@@ -174,7 +191,7 @@ if (searchInput) {
       fetch(GEOJSON_URL)
         .then((res) => res.json())
         .then((data) => {
-          const match = data.features.find((f) => {
+          const matches = data.features.filter((f) => {
             const { name, address, category } = f.properties;
             return (
               (name && name.toLowerCase().includes(query)) ||
@@ -183,26 +200,49 @@ if (searchInput) {
             );
           });
 
-          if (match) {
-            map.flyTo({
-              center: match.geometry.coordinates,
-              zoom: 16,
+          if (matches.length) {
+            const mapCenter = map.getCenter().toArray();
+            matches.sort(
+              (a, b) =>
+                getDistance(mapCenter, a.geometry.coordinates) -
+                getDistance(mapCenter, b.geometry.coordinates)
+            );
+
+            const top5 = matches.slice(0, 5);
+
+            // Clear old results
+            resultsDiv.innerHTML = "";
+
+            top5.forEach((match) => {
+              const { name, address, category } = match.properties;
+              const coords = match.geometry.coordinates;
+
+              const card = document.createElement("div");
+              card.className = "result-card";
+              card.innerHTML = `
+                <strong>${name}</strong>
+                ${address || ""}<br>
+                <em>${category || ""}</em>
+              `;
+              card.addEventListener("click", () => {
+                map.flyTo({ center: coords, zoom: 16 });
+                new maplibregl.Popup()
+                  .setLngLat(coords)
+                  .setHTML(
+                    `<strong>${name}</strong><br>${address || ""}<br><em>${category || ""}</em>`
+                  )
+                  .addTo(map);
+              });
+
+              resultsDiv.appendChild(card);
             });
-            new maplibregl.Popup()
-              .setLngLat(match.geometry.coordinates)
-              .setHTML(
-                `<strong>${match.properties.name}</strong><br>${match.properties.address ||
-                  ""}<br><em>${match.properties.category || ""}</em>`
-              )
-              .addTo(map);
           } else {
-            alert("No results found.");
+            resultsDiv.innerHTML = "<p>No results found.</p>";
           }
         });
     }
   });
 }
-
 
 // Catch missing icons
 map.on("styleimagemissing", (e) => {
