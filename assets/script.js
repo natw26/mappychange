@@ -1,10 +1,10 @@
 // assets/script.js
 
 const MAPTILER_KEY = "zouFxW02vyhPO2yBO8SN";
-const GEOJSON_URL = "/data/mappychange_walthamstow.geojson";
+const GEOJSON_URL = "data/mappychange_walthamstow.geojson";
 const FORM_URL = "https://forms.gle/VUFTbD6G8dLh2DrD7";
 const DEFAULT_BOUNDS = [[-0.064, 51.556],[0.028, 51.615]];
-const MARKER_ICON = "/assets/pin.png";
+const MARKER_ICON = "assets/pin.png";
 
 // Haversine distance in km
 function distanceKm([lon1,lat1],[lon2,lat2]){
