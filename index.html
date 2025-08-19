@@ -1,59 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>MappyChange</title>
-  <link href="https://api.maptiler.com/maps/streets-v2/style.css" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css"/>
-  <link rel="stylesheet" href="assets/style.css"/>
-  <link rel="icon" href="assets/pin.png" type="image/png"/>
-
+  <link href="https://api.maptiler.com/maps/streets-v2/style.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
   <style>
-    /* Results list styling */
-    .results-list {
-      max-height: 240px;
-      overflow-y: auto;
-      margin-top: 8px;
+    body {
+      margin: 0; 
+      font-family: "Poppins", sans-serif; 
+      display: flex; 
+      flex-direction: column; 
+      height: 100vh;
+    }
+    header {
+      text-align: center;
+      padding: 8px;
+    }
+    #map {
+      flex: 1;
+      min-height: 360px;
+      border-top: 1px solid #ddd;
+    }
+    .search-bar {
       display: flex;
-      flex-direction: column;
       gap: 8px;
+      padding: 10px;
+      justify-content: center;
+    }
+    .search-bar input {
+      flex: 1;
+      padding: 8px;
+      font-size: 16px;
+    }
+    .search-bar button {
+      padding: 8px 12px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .results-list {
+      margin: 12px;
     }
     .result-card {
       background: #fff;
       border: 1px solid #ddd;
+      padding: 10px;
       border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 14px;
+      margin-bottom: 8px;
       cursor: pointer;
-      transition: background 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     .result-card:hover {
       background: #f9f9f9;
     }
-    .result-card strong {
-      display: block;
-      font-family: 'Poppins', sans-serif;
-      font-weight: 600;
+    .fab {
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      border: 2px solid #111;
+      background: #FFD300;
+      color: #111;
+      font-size: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <header>
-    <h1><img src="assets/logo.png" alt="MappyChange" style="height:32px; vertical-align:middle; margin-right:8px;"> MappyChange</h1>
-    <p style="text-align:center; font-size:14px;">Quickly find a safe, clean place to change your baby while out and about</p>
-    <div style="display:flex; flex-direction:column; gap:8px; max-width:320px; margin:0 auto;">
-      <input type="text" id="search" placeholder="Search by name, address or category" style="padding:8px; border:1px solid #ccc; border-radius:4px;">
-      <button id="locate" style="padding:8px; border:1px solid #111; border-radius:4px; background:#FFD300; cursor:pointer;">Use my location</button>
-      <!-- ✅ Results container -->
-      <div id="results" class="results-list"></div>
-    </div>
+    <h1>MappyChange</h1>
+    <p>Quickly find safe, clean places to change your baby while out and about.</p>
   </header>
 
-  <main>
-    <div id="map" style="width:100%; height:500px;"></div>
-    <div id="fab-suggest" class="fab">+</div>
-  </main>
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search by name, postcode or category">
+    <button id="searchBtn">Search</button>
+    <button id="locate">Use My Location</button>
+  </div>
+
+  <div id="results" class="results-list"></div>
+  <div id="map"></div>
+  <div id="fab-suggest" class="fab">+</div>
 
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
   <script>
@@ -72,6 +105,12 @@
       return await res.json();
     }
 
+    function getDistance(c1, c2){
+      const dx = c1[0] - c2[0];
+      const dy = c1[1] - c2[1];
+      return Math.sqrt(dx*dx + dy*dy);
+    }
+
     document.getElementById('locate').addEventListener('click', ()=>{
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
@@ -85,94 +124,76 @@
 
     map.on('load', async () => {
       const data = await fetchGeoJSON();
-
       map.addSource('places', { type:'geojson', data });
       map.loadImage(MARKER_ICON, (error, image) => {
         if (!error && image){
-          if (!map.hasImage('custom-pin')) map.addImage('custom-pin', image);
-          map.addLayer({ id:'unclustered', type:'symbol', source:'places', layout:{ 'icon-image':'custom-pin','icon-size':0.06,'icon-allow-overlap':true } });
+          map.addImage('custom-pin', image);
+          map.addLayer({ id:'places-layer', type:'symbol', source:'places', layout:{ 'icon-image':'custom-pin','icon-size':0.06,'icon-allow-overlap':true }});
         }
-      });
-
-      // ✅ Popup on marker click
-      map.on('click','unclustered',(e)=>{
-        const coords = e.features[0].geometry.coordinates.slice();
-        const { name, address, category } = e.features[0].properties;
-        new maplibregl.Popup()
-          .setLngLat(coords)
-          .setHTML(`<strong>${name}</strong><br>${address}<br><em>${category}</em>`)
-          .addTo(map);
       });
     });
 
-    // ✅ Distance helper
-    function getDistance(coord1, coord2) {
-      const [lon1, lat1] = coord1;
-      const [lon2, lat2] = coord2;
-      const R = 6371; // km
-      const dLat = (lat2 - lat1) * Math.PI / 180;
-      const dLon = (lon2 - lon1) * Math.PI / 180;
-      const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
-      return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    }
-
-    // ✅ Search with cards
+    // ✅ Search function
     const searchInput = document.getElementById("search");
+    const searchBtn = document.getElementById("searchBtn");
     const resultsDiv = document.getElementById("results");
 
-    if (searchInput) {
-      searchInput.addEventListener("keypress", (e) => {
-        if (e.key === "Enter") {
-          const query = searchInput.value.trim().toLowerCase();
-          if (!query) return;
+    function runSearch() {
+      const query = searchInput.value.trim().toLowerCase();
+      if (!query) return;
 
-          fetch(GEOJSON_URL)
-            .then((res) => res.json())
-            .then((data) => {
-              const matches = data.features.filter((f) => {
-                const { name, address, category } = f.properties;
-                return (
-                  (name && name.toLowerCase().includes(query)) ||
-                  (address && address.toLowerCase().includes(query)) ||
-                  (category && category.toLowerCase().includes(query))
-                );
+      fetch(GEOJSON_URL)
+        .then(res => res.json())
+        .then(data => {
+          const matches = data.features.filter(f => {
+            const { name, address, category } = f.properties;
+            return (
+              (name && name.toLowerCase().includes(query)) ||
+              (address && address.toLowerCase().includes(query)) ||
+              (category && category.toLowerCase().includes(query))
+            );
+          });
+
+          if (matches.length) {
+            const mapCenter = map.getCenter().toArray();
+            matches.sort((a, b) =>
+              getDistance(mapCenter, a.geometry.coordinates) -
+              getDistance(mapCenter, b.geometry.coordinates)
+            );
+            const top5 = matches.slice(0, 5);
+
+            resultsDiv.innerHTML = "";
+            top5.forEach(match => {
+              const { name, address, category } = match.properties;
+              const coords = match.geometry.coordinates;
+
+              const card = document.createElement("div");
+              card.className = "result-card";
+              card.innerHTML = `<strong>${name}</strong><br>${address || ""}<br><em>${category || ""}</em>`;
+              card.addEventListener("click", () => {
+                map.flyTo({ center: coords, zoom: 16 });
+                new maplibregl.Popup()
+                  .setLngLat(coords)
+                  .setHTML(`<strong>${name}</strong><br>${address || ""}<br><em>${category || ""}</em>`)
+                  .addTo(map);
               });
-
-              if (matches.length) {
-                const mapCenter = map.getCenter().toArray();
-                matches.sort((a, b) =>
-                  getDistance(mapCenter, a.geometry.coordinates) -
-                  getDistance(mapCenter, b.geometry.coordinates)
-                );
-
-                const top5 = matches.slice(0, 5);
-
-                resultsDiv.innerHTML = "";
-                top5.forEach((match) => {
-                  const { name, address, category } = match.properties;
-                  const coords = match.geometry.coordinates;
-
-                  const card = document.createElement("div");
-                  card.className = "result-card";
-                  card.innerHTML = `<strong>${name}</strong>${address || ""}<br><em>${category || ""}</em>`;
-                  card.addEventListener("click", () => {
-                    map.flyTo({ center: coords, zoom: 16 });
-                    new maplibregl.Popup()
-                      .setLngLat(coords)
-                      .setHTML(`<strong>${name}</strong><br>${address || ""}<br><em>${category || ""}</em>`)
-                      .addTo(map);
-                  });
-
-                  resultsDiv.appendChild(card);
-                });
-              } else {
-                resultsDiv.innerHTML = "<p>No results found.</p>";
-              }
+              resultsDiv.appendChild(card);
             });
-        }
-      });
+          } else {
+            resultsDiv.innerHTML = "<p>No results found.</p>";
+          }
+        });
     }
+
+    searchBtn.addEventListener("click", runSearch);
+    searchInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        runSearch();
+      }
+    });
   </script>
 </body>
 </html>
+
 
