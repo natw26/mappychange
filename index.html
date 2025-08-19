@@ -1,99 +1,87 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>MappyChange</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link href="https://api.maptiler.com/maps/streets-v2/style.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css">
+
+  <!-- Fonts and MapLibre CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <link rel="icon" href="assets/favicon.ico" />
+
   <style>
-    body {
-      margin: 0; 
-      font-family: "Poppins", sans-serif; 
-      display: flex; 
-      flex-direction: column; 
-      height: 100vh;
+    :root{
+      --bg:#fff; --fg:#111; --muted:#6b7280; --accent:#ffd300; --accent-ink:#1a1a1a; --border:#e5e7eb;
     }
-    header {
-      text-align: center;
-      padding: 8px;
+    *{ box-sizing:border-box; }
+    html, body { height:100%; margin:0; background:var(--bg); color:var(--fg); font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    .app{ display:grid; grid-template-rows:auto auto 1fr; min-height:100%; }
+    header{ border-bottom:1px solid var(--border); background:var(--bg); text-align:center; }
+    .container{ max-width:1100px; margin:0 auto; padding:12px 16px; }
+
+    /* Brand */
+    .brand{ display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Poppins',sans-serif; font-weight:600; }
+    .brand img{ height:32px; }
+    .tagline{ margin:6px 0 0; font-size:14px; color:var(--muted); }
+
+    /* Controls */
+    .controls{ display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
+    @media (min-width: 860px){
+      .controls{ grid-template-columns:1fr auto auto; align-items:center; }
     }
-    #map {
-      flex: 1;
-      min-height: 360px;
-      border-top: 1px solid #ddd;
+    .input, .btn{ padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--fg); font-size:16px; }
+    .btn{ cursor:pointer; font-weight:600; border-color:#111; }
+    .btn.accent{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+    .btn:focus, .input:focus{ outline:2px solid var(--accent); outline-offset:2px; }
+
+    /* Results */
+    .results-list{ max-height:260px; overflow:auto; display:flex; flex-direction:column; gap:8px; margin:10px 0 0; }
+    .result-card{ background:#fff; border:1px solid var(--border); border-radius:10px; padding:10px 12px; cursor:pointer; transition:background .15s ease; }
+    .result-card:hover{ background:#fafafa; }
+    .result-card strong{ display:block; font-family:'Poppins',sans-serif; font-weight:600; }
+
+    /* Main layout */
+    .main{ position:relative; display:grid; grid-template-columns: 1fr; }
+    #map{ width:100%; height:520px; border-top:1px solid var(--border); }
+    @media (min-width: 1100px){
+      #map{ height:640px; }
     }
-    .search-bar {
-      display: flex;
-      gap: 8px;
-      padding: 10px;
-      justify-content: center;
-    }
-    .search-bar input {
-      flex: 1;
-      padding: 8px;
-      font-size: 16px;
-    }
-    .search-bar button {
-      padding: 8px 12px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    .results-list {
-      margin: 12px;
-    }
-    .result-card {
-      background: #fff;
-      border: 1px solid #ddd;
-      padding: 10px;
-      border-radius: 8px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .result-card:hover {
-      background: #f9f9f9;
-    }
-    .fab {
-      position: absolute;
-      bottom: 16px;
-      right: 16px;
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      border: 2px solid #111;
-      background: #FFD300;
-      color: #111;
-      font-size: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
+
+    /* Floating action button */
+    .fab{ position:absolute; bottom:16px; right:16px; width:56px; height:56px; border-radius:50%; border:2px solid #111; background:var(--accent); color:var(--accent-ink); font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .fab:focus{ outline:3px solid #000; outline-offset:3px; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>MappyChange</h1>
-    <p>Quickly find safe, clean places to change your baby while out and about.</p>
-  </header>
+  <div class="app">
+    <header>
+      <div class="container">
+        <div class="brand">
+          <img src="assets/pin.png" alt="MappyChange logo">
+          <span>MappyChange</span>
+        </div>
+        <p class="tagline">Helping you quickly find a safe, clean place to change your baby while out and about.</p>
 
-  <div class="search-bar">
-    <input type="text" id="search" placeholder="Search by name, postcode or category">
-    <button id="searchBtn">Search</button>
-    <button id="locate">Use My Location</button>
+        <!-- Controls -->
+        <div class="controls">
+          <input id="search" class="input" type="search" placeholder="Search by name, postcode or category" autocomplete="off" />
+          <button id="searchBtn" class="btn accent" aria-label="Search">Search</button>
+          <button id="locate" class="btn" aria-label="Use my location">Use my location</button>
+          <!-- Results list (appears under controls on all sizes) -->
+          <div id="results" class="results-list" style="grid-column: 1 / -1;"></div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main">
+      <div id="map" role="application" aria-label="Map of baby changing places"></div>
+      <button id="fab-suggest" class="fab" title="Suggest a place" aria-label="Suggest a place">+</button>
+    </div>
   </div>
 
-  <div id="results" class="results-list"></div>
-  <div id="map"></div>
-  <div id="fab-suggest" class="fab">+</div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Your custom script -->
-<script src="assets/script.js"></script>
+  <!-- MapLibre and your script -->
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="assets/script.js"></script>
 </body>
 </html>
-
-
