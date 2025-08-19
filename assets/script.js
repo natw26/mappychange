@@ -1,251 +1,160 @@
-// assets/script.js
-
-const MAPTILER_KEY = "zouFxW02vyhPO2yBO8SN";
+// Config
+const MAPTILER_KEY = "zouFxW02vyhPO2yBO8SN"; // your key
 const STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
-const GEOJSON_URL = "data/mappychange_walthamstow.geojson"; // relative path
+const GEOJSON_URL = "data/mappychange_walthamstow.geojson";        // relative for GitHub Pages
 const FORM_URL = "https://forms.gle/VUFTbD6G8dLh2DrD7";
-const DEFAULT_BOUNDS = [[-0.064, 51.556], [0.028, 51.615]];
-const MARKER_ICON = "assets/pin.png"; // ✅ FIXED relative path
+const MARKER_ICON = "assets/pin.png";                               // relative for GitHub Pages
+const DEFAULT_BOUNDS = [[-0.064, 51.556],[0.028, 51.615]];          // Walthamstow
 
-// Init map
-const map = new maplibregl.Map({
-  container: "map",
-  style: STYLE_URL,
-  bounds: DEFAULT_BOUNDS,
-});
+// Elements
+const searchInput = document.getElementById("search");
+const searchBtn   = document.getElementById("searchBtn");
+const resultsDiv  = document.getElementById("results");
+
+// Map
+const map = new maplibregl.Map({ container: "map", style: STYLE_URL, bounds: DEFAULT_BOUNDS });
 map.addControl(new maplibregl.NavigationControl());
 
-// Load GeoJSON
-async function fetchGeoJSON() {
-  try {
-    const res = await fetch(GEOJSON_URL, { cache: "no-store" });
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    return await res.json();
-  } catch (err) {
-    console.warn("GeoJSON missing, using sample data. Reason:", err.message);
-    return {
-      type: "FeatureCollection",
-      features: [
-        {
-          type: "Feature",
-          geometry: { type: "Point", coordinates: [-0.0197, 51.5856] },
-          properties: { name: "Test Hall", address: "Test Road, E17" },
-        },
-        {
-          type: "Feature",
-          geometry: { type: "Point", coordinates: [-0.0289, 51.5902] },
-          properties: { name: "Civic Centre", address: "Forest Rd, E17" },
-        },
-      ],
-    };
-  }
+// Data cache
+let PLACES = [];
+
+// Helpers
+function norm(s){ return String(s||"").toLowerCase(); }
+function normPC(s){ return String(s||"").replace(/\s+/g,"").toLowerCase(); }
+function distanceKm([lon1,lat1],[lon2,lat2]){
+  const R=6371, toRad=d=>d*Math.PI/180;
+  const dLat=toRad(lat2-lat1), dLon=toRad(lon2-lon1);
+  const a=Math.sin(dLat/2)**2+Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
+function escapeHtml(str){return String(str).replace(/[&<>"']/g,s=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[s]));}
 
-// Geolocation button
-document.getElementById("locate").addEventListener("click", () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((pos) => {
-      const { latitude, longitude } = pos.coords;
-      map.flyTo({ center: [longitude, latitude], zoom: 14 });
-    });
-  }
-});
+// Load GeoJSON once
+async function loadData(){
+  const res = await fetch(GEOJSON_URL, { cache: "no-store" });
+  if(!res.ok) throw new Error("GeoJSON HTTP " + res.status);
+  const data = await res.json();
+  PLACES = data.features || [];
 
-// Suggest place button
-document
-  .getElementById("fab-suggest")
-  .addEventListener("click", () => window.open(FORM_URL, "_blank"));
+  map.addSource("places", { type:"geojson", data });
 
-// Load data + layers
-map.on("load", async () => {
-  const data = await fetchGeoJSON();
-
-  map.addSource("places", {
-    type: "geojson",
-    data,
-    cluster: true,
-    clusterRadius: 50,
-    clusterMaxZoom: 14,
-  });
-
-  // Cluster circles
+  // shadow first
   map.addLayer({
-    id: "clusters",
-    type: "circle",
-    source: "places",
-    filter: ["has", "point_count"],
-    paint: {
-      "circle-color": "#111",
-      "circle-radius": ["step", ["get", "point_count"], 16, 10, 22, 25, 28],
-      "circle-stroke-color": "#ffd300",
-      "circle-stroke-width": 2,
-    },
+    id:"unclustered-shadow", type:"circle", source:"places",
+    paint:{ "circle-color":"rgba(0,0,0,0.18)", "circle-radius":10, "circle-blur":0.6 }
   });
 
-  // Cluster counts
-  map.addLayer({
-    id: "cluster-count",
-    type: "symbol",
-    source: "places",
-    filter: ["has", "point_count"],
-    layout: {
-      "text-field": ["get", "point_count_abbreviated"],
-      "text-size": 12,
-    },
-    paint: { "text-color": "#fff" },
-  });
-
-  // Shadow under pins
-  map.addLayer({
-    id: "unclustered-shadow",
-    type: "circle",
-    source: "places",
-    filter: ["!", ["has", "point_count"]],
-    paint: {
-      "circle-color": "rgba(0,0,0,0.18)",
-      "circle-radius": 10,
-      "circle-blur": 0.6,
-    },
-  });
-
-  // ✅ Load custom marker
+  // custom icon, with fallback to circles
   map.loadImage(MARKER_ICON, (error, image) => {
     if (!error && image) {
       if (!map.hasImage("custom-pin")) map.addImage("custom-pin", image);
       map.addLayer({
-        id: "unclustered",
-        type: "symbol",
-        source: "places",
-        filter: ["!", ["has", "point_count"]],
-        layout: {
-          "icon-image": "custom-pin",
-          "icon-size": 0.06,
-          "icon-allow-overlap": true,
-        },
+        id:"unclustered", type:"symbol", source:"places",
+        layout:{ "icon-image":"custom-pin", "icon-size":0.06, "icon-allow-overlap":true }
       });
     } else {
-      console.warn("Custom pin not found, falling back to circle markers.");
+      console.warn("Custom pin missing, using circle markers.");
       map.addLayer({
-        id: "unclustered",
-        type: "circle",
-        source: "places",
-        filter: ["!", ["has", "point_count"]],
-        paint: {
-          "circle-color": "#ffd300",
-          "circle-radius": 8,
-          "circle-stroke-color": "#111",
-          "circle-stroke-width": 2,
-        },
+        id:"unclustered", type:"circle", source:"places",
+        paint:{ "circle-color":"#ffd300","circle-radius":8,"circle-stroke-color":"#111","circle-stroke-width":2 }
       });
     }
   });
 
-  // ✅ Popups on pin click
-  map.on("click", "unclustered", (e) => {
-    const coords = e.features[0].geometry.coordinates.slice();
-    const { name, address, category } = e.features[0].properties;
-
+  // popups
+  map.on("click","unclustered",(e)=>{
+    const f = e.features[0];
+    const p = f.properties || {};
     new maplibregl.Popup()
-      .setLngLat(coords)
-      .setHTML(
-        `<strong>${name}</strong><br>${address || ""}<br><em>${category ||
-          ""}</em>`
-      )
+      .setLngLat(f.geometry.coordinates)
+      .setHTML(`
+        <strong>${escapeHtml(p.name||"Location")}</strong><br>
+        ${escapeHtml(p.address||"")} ${escapeHtml(p.postcode||"")}<br>
+        <em>${escapeHtml(p.category||"")}</em>
+      `)
       .addTo(map);
   });
+  map.on("mouseenter","unclustered",()=>map.getCanvas().style.cursor="pointer");
+  map.on("mouseleave","unclustered",()=>map.getCanvas().style.cursor="");
+}
+map.on("styleimagemissing",(e)=>console.warn("Missing image:", e.id));
+map.on("load", loadData);
 
-  // ✅ Cursor pointer on hover
-  map.on("mouseenter", "unclustered", () => {
-    map.getCanvas().style.cursor = "pointer";
-  });
-  map.on("mouseleave", "unclustered", () => {
-    map.getCanvas().style.cursor = "";
-  });
-});
-
-// ✅ Haversine distance helper
-function getDistance(coord1, coord2) {
-  const [lon1, lat1] = coord1;
-  const [lon2, lat2] = coord2;
-  const R = 6371; // km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) *
-    Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+// Geocode UK postcodes with postcodes.io
+async function geocodePostcode(pc){
+  try{
+    const res = await fetch(`https://api.postcodes.io/postcodes/${encodeURIComponent(pc)}`);
+    if(!res.ok) return null;
+    const data = await res.json();
+    if(data && data.result) return [data.result.longitude, data.result.latitude];
+  }catch(err){ console.warn("Geocode failed:", err); }
+  return null;
 }
 
-// ✅ Search box with results list
-const searchInput = document.getElementById("search");
-const resultsDiv = document.getElementById("results");
+// Search logic
+async function runSearch(){
+  const qRaw = (searchInput?.value || "").trim();
+  if(!qRaw) return;
+  const qNorm = norm(qRaw);
+  const qPC   = normPC(qRaw);
 
-if (searchInput) {
-  searchInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      const query = searchInput.value.trim().toLowerCase();
-      if (!query) return;
+  // reference point: postcode if possible, else map centre
+  let ref = map.getCenter().toArray();
+  if (/^[A-Za-z0-9 ]{3,8}$/.test(qRaw)) {
+    const geo = await geocodePostcode(qRaw);
+    if (geo) { ref = geo; map.flyTo({ center: ref, zoom: 14 }); }
+  }
 
-      fetch(GEOJSON_URL)
-        .then((res) => res.json())
-        .then((data) => {
-          const matches = data.features.filter((f) => {
-            const { name, address, category } = f.properties;
-            return (
-              (name && name.toLowerCase().includes(query)) ||
-              (address && address.toLowerCase().includes(query)) ||
-              (category && category.toLowerCase().includes(query))
-            );
-          });
+  const matches = PLACES.filter(f=>{
+    const p=f.properties||{};
+    const name=norm(p.name), addr=norm(p.address), cat=norm(p.category);
+    const propPC=normPC(p.postcode), addrPC=normPC(p.address);
+    const textHit = name.includes(qNorm) || addr.includes(qNorm) || cat.includes(qNorm);
+    const pcHit   = (propPC && propPC.includes(qPC)) || (addrPC && addrPC.includes(qPC));
+    return textHit || pcHit;
+  }).map(f=>({ f, d: distanceKm(ref, f.geometry.coordinates) }))
+    .sort((a,b)=>a.d-b.d)
+    .slice(0,5);
 
-          if (matches.length) {
-            const mapCenter = map.getCenter().toArray();
-            matches.sort(
-              (a, b) =>
-                getDistance(mapCenter, a.geometry.coordinates) -
-                getDistance(mapCenter, b.geometry.coordinates)
-            );
-
-            const top5 = matches.slice(0, 5);
-
-            // Clear old results
-            resultsDiv.innerHTML = "";
-
-            top5.forEach((match) => {
-              const { name, address, category } = match.properties;
-              const coords = match.geometry.coordinates;
-
-              const card = document.createElement("div");
-              card.className = "result-card";
-              card.innerHTML = `
-                <strong>${name}</strong>
-                ${address || ""}<br>
-                <em>${category || ""}</em>
-              `;
-              card.addEventListener("click", () => {
-                map.flyTo({ center: coords, zoom: 16 });
-                new maplibregl.Popup()
-                  .setLngLat(coords)
-                  .setHTML(
-                    `<strong>${name}</strong><br>${address || ""}<br><em>${category || ""}</em>`
-                  )
-                  .addTo(map);
-              });
-
-              resultsDiv.appendChild(card);
-            });
-          } else {
-            resultsDiv.innerHTML = "<p>No results found.</p>";
-          }
-        });
-    }
+  // render cards
+  resultsDiv.innerHTML = matches.length ? "" : "<p>No results found.</p>";
+  matches.forEach(({f,d})=>{
+    const p=f.properties||{};
+    const el=document.createElement("div");
+    el.className="result-card";
+    el.innerHTML = `
+      <strong>${escapeHtml(p.name||"Location")}</strong>
+      ${escapeHtml(p.address||"")} ${p.postcode?escapeHtml(" "+p.postcode):""}<br>
+      <em>${escapeHtml(p.category||"")}</em><br>
+      <small>${d.toFixed(1)} km away</small>
+    `;
+    el.addEventListener("click", ()=>{
+      const coords=f.geometry.coordinates;
+      map.flyTo({ center: coords, zoom: 16 });
+      new maplibregl.Popup()
+        .setLngLat(coords)
+        .setHTML(`
+          <strong>${escapeHtml(p.name||"Location")}</strong><br>
+          ${escapeHtml(p.address||"")} ${escapeHtml(p.postcode||"")}<br>
+          <em>${escapeHtml(p.category||"")}</em>
+        `)
+        .addTo(map);
+    });
+    resultsDiv.appendChild(el);
   });
 }
 
-// Catch missing icons
-map.on("styleimagemissing", (e) => {
-  console.warn("Missing image:", e.id);
+// Wire controls
+searchBtn?.addEventListener("click", runSearch);
+searchInput?.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); runSearch(); }});
+document.getElementById("locate")?.addEventListener("click", ()=>{
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(({coords})=>{
+      map.flyTo({ center:[coords.longitude, coords.latitude], zoom:14 });
+      new maplibregl.Marker().setLngLat([coords.longitude, coords.latitude]).addTo(map);
+    });
+  }
 });
+document.getElementById("fab-suggest")?.addEventListener("click", ()=> window.open(FORM_URL, "_blank"));
+
 
