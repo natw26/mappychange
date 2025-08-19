@@ -3,7 +3,7 @@ const STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAP
 const GEOJSON_URL = "/data/mappychange_walthamstow.geojson";
 const FORM_URL = "https://forms.gle/VUFTbD6G8dLh2DrD7";
 const DEFAULT_BOUNDS = [[-0.064, 51.556], [0.028, 51.615]];
-const MARKER_ICON = "/assets/pin.png";
+const MARKER_ICON = "assets/pin.png";
 
 const map = new maplibregl.Map({
   container: "map",
