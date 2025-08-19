@@ -156,4 +156,72 @@ map.on("load", async () => {
   map.on("mouseleave", "unclustered", () => {
     map.getCanvas().style.cursor = "";
   });
+
+// ✅ Popups for unclustered points
+map.on("click", "unclustered", (e) => {
+  const coords = e.features[0].geometry.coordinates.slice();
+  const props = e.features[0].properties;
+
+  const popupHtml = `
+    <strong>${props.name || "Unnamed"}</strong><br>
+    ${props.address || ""}<br>
+    <em>${props.category || ""}</em>
+  `;
+
+  new maplibregl.Popup()
+    .setLngLat(coords)
+    .setHTML(popupHtml)
+    .addTo(map);
+});
+
+// Cursor pointer on hover
+map.on("mouseenter", "unclustered", () => {
+  map.getCanvas().style.cursor = "pointer";
+});
+map.on("mouseleave", "unclustered", () => {
+  map.getCanvas().style.cursor = "";
+});
+
+// 🔍 SEARCH FUNCTION
+const searchInput = document.getElementById("search");
+if (searchInput) {
+  searchInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      const query = e.target.value.trim().toLowerCase();
+      if (!query) return;
+
+      // get all features from GeoJSON source
+      const features = map.querySourceFeatures("places");
+
+      let match = features.find((f) => {
+        const props = f.properties;
+        return (
+          (props.name && props.name.toLowerCase().includes(query)) ||
+          (props.address && props.address.toLowerCase().includes(query))
+        );
+      });
+
+      if (match) {
+        const coords = match.geometry.coordinates;
+        const props = match.properties;
+
+        // fly to the location
+        map.flyTo({ center: coords, zoom: 16 });
+
+        // popup
+        new maplibregl.Popup()
+          .setLngLat(coords)
+          .setHTML(
+            `<strong>${props.name}</strong><br>${props.address || ""}<br><em>${
+              props.category || ""
+            }</em>`
+          )
+          .addTo(map);
+      } else {
+        alert("No matching place found");
+      }
+    }
+  });
+}
+  
 });
