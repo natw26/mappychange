@@ -56,71 +56,11 @@
       <aside></aside>
     </div>
   </div>
+<!-- Leaflet JS + CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-  <script>
-    const MAPTILER_KEY = "zouFxW02vyhPO2yBO8SN";
-    const STYLE_URL = `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`;
-    const GEOJSON_URL = "/data/mappychange_walthamstow.geojson";
-    const FORM_URL = "https://forms.gle/VUFTbD6G8dLh2DrD7";
-    const DEFAULT_BOUNDS = [[-0.064, 51.556],[0.028, 51.615]];
-    const MARKER_ICON = '/assets/pin.png';
-
-    const map = new maplibregl.Map({ container:'map', style:STYLE_URL, bounds:DEFAULT_BOUNDS });
-    map.addControl(new maplibregl.NavigationControl());
-
-    async function fetchGeoJSON(){
-      try{
-        const res = await fetch(GEOJSON_URL, { cache: 'no-store' });
-        if(!res.ok) throw new Error('HTTP '+res.status);
-        return await res.json();
-      }catch(err){
-        console.warn('GeoJSON missing, using sample data. Reason:', err.message);
-        return { type:'FeatureCollection', features:[
-          { type:'Feature', geometry:{ type:'Point', coordinates:[-0.0197,51.5856] }, properties:{ name:'Test Hall', address:'Test Road, E17' }},
-          { type:'Feature', geometry:{ type:'Point', coordinates:[-0.0289,51.5902] }, properties:{ name:'Civic Centre', address:'Forest Rd, E17' }}
-        ]};
-      }
-    }
-
-    document.getElementById('locate').addEventListener('click', ()=>{
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(pos => {
-          const {latitude, longitude} = pos.coords;
-          map.flyTo({center:[longitude, latitude], zoom:14});
-        });
-      }
-    });
-
-    document.getElementById('fab-suggest').addEventListener('click', ()=> window.open(FORM_URL, '_blank'));
-
-    map.on('load', async () => {
-      const data = await fetchGeoJSON();
-
-      map.addSource('places', { type:'geojson', data, cluster:true, clusterRadius:50, clusterMaxZoom:14 });
-      map.addLayer({ id:'clusters', type:'circle', source:'places', filter:['has','point_count'], paint:{ 'circle-color':'#111','circle-radius':['step',['get','point_count'],16,10,22,25,28],'circle-stroke-color':'#ffd300','circle-stroke-width':2 }});
-      map.addLayer({ id:'cluster-count', type:'symbol', source:'places', filter:['has','point_count'], layout:{ 'text-field':['get','point_count_abbreviated'],'text-size':12 }, paint:{ 'text-color':'#fff' }});
-
-      // Soft shadow under each unclustered pin for contrast
-      map.addLayer({ id:'unclustered-shadow', type:'circle', source:'places', filter:['!', ['has','point_count']], paint:{ 'circle-color':'rgba(0,0,0,0.18)','circle-radius':10,'circle-blur':0.6 } });
-
-      map.loadImage(MARKER_ICON, (error, image) => {
-        if (!error && image){
-          if (!map.hasImage('custom-pin')) map.addImage('custom-pin', image);
-          map.addLayer({ id:'unclustered', type:'symbol', source:'places', filter:['!', ['has','point_count']], layout:{ 'icon-image':'custom-pin','icon-size':0.06,'icon-allow-overlap':true } });
-        } else {
-          console.warn('Custom pin not found, using circle markers instead.');
-          if (map.getLayer('unclustered-shadow')) map.setPaintProperty('unclustered-shadow','circle-color','rgba(0,0,0,0.1)');
-          map.addLayer({ id:'unclustered', type:'circle', source:'places', filter:['!', ['has','point_count']], paint:{ 'circle-color':'#ffd300','circle-radius':8,'circle-stroke-color':'#111','circle-stroke-width':2 } });
-        }
-      });
-    });
-
-    // Placeholder handlers for footer links (if added later)
-    const a11y = document.getElementById('a11y');
-    const privacy = document.getElementById('privacy');
-    if (a11y) a11y.addEventListener('click', (e)=>{ e.preventDefault(); alert('Accessibility: keyboard accessible controls, high contrast, focus states.'); });
-    if (privacy) privacy.addEventListener('click', (e)=>{ e.preventDefault(); alert('Privacy: no logins, no tracking, no cookies beyond optional local preferences.'); });
-  </script>
+<!-- Your custom script -->
+<script src="assets/script.js"></script>
 </body>
 </html>
