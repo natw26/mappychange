@@ -5,10 +5,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -0.0197,
-          51.58327
-        ]
+        "coordinates": [-0.0197, 51.58327]
       },
       "properties": {
         "name": "Goose Walthamstow",
@@ -16,17 +13,16 @@
         "address": "264 Hoe Street",
         "postcode": "E17 3AX",
         "baby_change": "yes",
-        "changing_location": "public toilet behind bar"
+        "changing_location": "public toilet behind bar",
+        "accessible_to": "all",
+        "verified": true
       }
     },
     {
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -0.017091,
-          51.590282
-        ]
+        "coordinates": [-0.017091, 51.590282]
       },
       "properties": {
         "name": "The Bell Walthamstow",
@@ -34,17 +30,16 @@
         "address": "617 Forest Road",
         "postcode": "E17 4NE",
         "baby_change": "yes",
-        "changing_location": "all-gender loo downstairs"
+        "changing_location": "all-gender loo downstairs",
+        "accessible_to": "all",
+        "verified": true
       }
     },
     {
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -0.05414,
-          51.58548
-        ]
+        "coordinates": [-0.05414, 51.58548]
       },
       "properties": {
         "name": "Walthamstow Wetlands Visitor Centre",
@@ -52,43 +47,322 @@
         "address": "2 Forest Road",
         "postcode": "N17 9NH",
         "baby_change": "yes",
-        "changing_location": "visitor centre toilets"
+        "changing_location": "visitor centre toilets",
+        "accessible_to": "all",
+        "additional_facilities": ["cafe", "parking", "accessible_toilet"],
+        "verified": false,
+        "notes": "Needs verification - conflicting sources"
       }
     },
     {
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -0.013889,
-          51.585294
-        ]
+        "coordinates": [-0.0228, 51.5883]
       },
       "properties": {
-        "name": "Walthamstow School for Girls",
-        "category": "school",
-        "address": "Church Hill",
-        "postcode": "E17 9RZ",
-        "baby_change": "no",
-        "changing_location": "n/a"
+        "name": "Eat17",
+        "category": "restaurant",
+        "address": "Orford Road, Walthamstow Village",
+        "postcode": "E17 9NJ",
+        "baby_change": "yes",
+        "changing_location": "accessible to both parents",
+        "accessible_to": "all",
+        "additional_facilities": ["highchairs", "family_friendly"],
+        "verified": true
       }
     },
     {
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [
-          -0.0139,
-          51.5856
-        ]
+        "coordinates": [-0.0201, 51.5891]
       },
       "properties": {
-        "name": "Walthamstow High School for Girls (historic)",
-        "category": "school",
-        "address": "Hoe Street",
-        "postcode": "E17",
+        "name": "Arte e Pasta",
+        "category": "restaurant",
+        "address": "Shernhall Street",
+        "postcode": "E17 9HU",
+        "baby_change": "yes",
+        "changing_location": "accessible to both parents",
+        "accessible_to": "all",
+        "additional_facilities": ["highchairs", "family_friendly"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0226, 51.5882]
+      },
+      "properties": {
+        "name": "The Kitchen",
+        "category": "restaurant",
+        "address": "Orford Road, Walthamstow Village",
+        "postcode": "E17 9NJ",
+        "baby_change": "yes",
+        "changing_location": "restroom facilities",
+        "accessible_to": "all",
+        "additional_facilities": ["highchairs", "brunch_menu"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0198, 51.5829]
+      },
+      "properties": {
+        "name": "17 & Central Shopping Mall",
+        "category": "shopping",
+        "address": "Selborne Walk, High Street",
+        "postcode": "E17 7JR",
+        "baby_change": "yes",
+        "changing_location": "parent & baby room next to CRATE",
+        "accessible_to": "all",
+        "additional_facilities": ["feeding_room", "soft_seating", "accessible_toilet", "parking"],
+        "verified": true,
+        "notes": "Private feeding rooms available"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0199, 51.5828]
+      },
+      "properties": {
+        "name": "Asda Walthamstow",
+        "category": "supermarket",
+        "address": "19 Selborne Walk Shopping Centre",
+        "postcode": "E17 7LS",
+        "baby_change": "yes",
+        "changing_location": "customer toilets",
+        "accessible_to": "all",
+        "additional_facilities": ["parking", "accessible_facilities"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0205, 51.5835]
+      },
+      "properties": {
+        "name": "Sainsbury's Walthamstow",
+        "category": "supermarket",
+        "address": "112 High Street",
+        "postcode": "E17 7JY",
+        "baby_change": "yes",
+        "changing_location": "customer toilets",
+        "accessible_to": "all",
+        "additional_facilities": ["parking", "lift_access"],
+        "verified": false
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0195, 51.5825]
+      },
+      "properties": {
+        "name": "Walthamstow Leisure Centre",
+        "category": "leisure",
+        "address": "539 High Road Leytonstone",
+        "postcode": "E11 4PB",
+        "baby_change": "yes",
+        "changing_location": "changing rooms area",
+        "accessible_to": "all",
+        "additional_facilities": ["swimming_pool", "gym", "parking", "pushchair_friendly"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0197, 51.5830]
+      },
+      "properties": {
+        "name": "CRATE Walthamstow / Play Central",
+        "category": "entertainment",
+        "address": "17 & Central",
+        "postcode": "E17 7JR",
+        "baby_change": "yes",
+        "changing_location": "parent & baby room nearby",
+        "accessible_to": "all",
+        "additional_facilities": ["soft_play", "food", "drinks", "family_events"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0202, 51.5833]
+      },
+      "properties": {
+        "name": "Walthamstow Library",
+        "category": "library",
+        "address": "High Street",
+        "postcode": "E17 7JN",
+        "baby_change": "yes",
+        "changing_location": "accessible toilet facilities",
+        "accessible_to": "all",
+        "additional_facilities": ["childrens_area", "buggy_parking", "accessible"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0128, 51.5906]
+      },
+      "properties": {
+        "name": "William Morris Gallery",
+        "category": "museum",
+        "address": "Lloyd Park, Forest Road",
+        "postcode": "E17 4PP",
+        "baby_change": "yes",
+        "changing_location": "gallery toilets",
+        "accessible_to": "all",
+        "additional_facilities": ["parking", "cafe_nearby"],
+        "verified": true,
+        "notes": "Open during gallery hours"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0302, 51.5766]
+      },
+      "properties": {
+        "name": "Walthamstow Pumphouse Museum",
+        "category": "museum",
+        "address": "South Access Road",
+        "postcode": "E17 8AX",
+        "baby_change": "yes",
+        "changing_location": "toilet facilities",
+        "accessible_to": "all",
+        "additional_facilities": ["pushchair_friendly", "accessible_toilet"],
+        "verified": true,
+        "notes": "Usually open 2nd and 4th Sunday of month"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0129, 51.5905]
+      },
+      "properties": {
+        "name": "Lloyd Park - The Aveling Centre",
+        "category": "park",
+        "address": "Forest Road",
+        "postcode": "E17 4PP",
+        "baby_change": "yes",
+        "changing_location": "Aveling Centre toilets",
+        "accessible_to": "all",
+        "additional_facilities": ["cafe", "playground", "parking", "accessible"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0132, 51.5908]
+      },
+      "properties": {
+        "name": "Lloyd Park - Community Bowling Centre",
+        "category": "park",
+        "address": "Lloyd Park",
+        "postcode": "E17 4PP",
+        "baby_change": "yes",
+        "changing_location": "pavilion facilities",
+        "accessible_to": "all",
+        "additional_facilities": ["accessible"],
+        "verified": true
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0198, 51.5829]
+      },
+      "properties": {
+        "name": "Walthamstow Central Station",
+        "category": "transport",
+        "address": "Station Approach",
+        "postcode": "E17 7LT",
         "baby_change": "no",
-        "changing_location": "n/a"
+        "changing_location": "n/a",
+        "accessible_to": "none",
+        "verified": true,
+        "notes": "Major transport hub - no baby change facilities as of 2025"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0200, 51.5830]
+      },
+      "properties": {
+        "name": "Costa Coffee - 17 & Central",
+        "category": "cafe",
+        "address": "Selborne Walk",
+        "postcode": "E17 7JR",
+        "baby_change": "yes",
+        "changing_location": "customer toilets",
+        "accessible_to": "all",
+        "additional_facilities": ["seating"],
+        "verified": false,
+        "notes": "Chain location - typically has facilities"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0130, 51.5904]
+      },
+      "properties": {
+        "name": "Lloyd Park Public Toilets",
+        "category": "public_toilet",
+        "address": "Lloyd Park, Forest Road",
+        "postcode": "E17 4PP",
+        "baby_change": "yes",
+        "changing_location": "accessible toilet",
+        "accessible_to": "all",
+        "additional_facilities": ["accessible"],
+        "verified": true,
+        "notes": "Public toilets in park"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-0.0197, 51.5831]
+      },
+      "properties": {
+        "name": "William Morris Bar & Restaurant",
+        "category": "restaurant",
+        "address": "Lloyd Park area",
+        "postcode": "E17 4PP",
+        "baby_change": "yes",
+        "changing_location": "restaurant facilities",
+        "accessible_to": "all",
+        "additional_facilities": ["family_friendly", "highchairs"],
+        "verified": false
       }
     }
   ]
