@@ -69,9 +69,13 @@
 
     .stats{ font-size:13px; color:var(--muted); padding:8px 12px; }
 
-    /* Main layout */
-    .main{ position:relative; height:calc(100vh - 140px); }
+    /* Main layout - smaller map for above the fold */
+    .main{ position:relative; height:400px; }
     #map{ width:100%; height:100%; background:#f8f9fa; }
+    
+    @media (min-width: 768px) {
+      .main{ height:500px; }
+    }
     
     /* Clean up map controls */
     .leaflet-control-zoom{ border:none; box-shadow:0 2px 8px rgba(0,0,0,.1); }
@@ -83,21 +87,48 @@
     /* Pin marker styles */
     .pin-inactive{ opacity:0.4; filter:grayscale(100%); }
     .pin-active{ opacity:1; }
+    .leaflet-marker-icon{ 
+      filter: drop-shadow(0 0 0 2px #000) drop-shadow(0 2px 4px rgba(0,0,0,0.3)); 
+      cursor:pointer;
+    }
+    .leaflet-marker-icon:hover{
+      filter: drop-shadow(0 0 0 3px #000) drop-shadow(0 3px 6px rgba(0,0,0,0.4));
+      transform: scale(1.1);
+    }
 
     /* Leaflet popup customization */
     .leaflet-popup-content-wrapper{ border-radius:12px; padding:4px; }
-    .leaflet-popup-content{ margin:12px; min-width:200px; font-size:14px; }
+    .leaflet-popup-content{ margin:12px; min-width:220px; font-size:14px; }
     
     .popup-title{ font-family:'Poppins',sans-serif; font-weight:600; font-size:16px; margin:0 0 6px; }
     .popup-category{ display:inline-block; padding:4px 10px; background:var(--accent); color:var(--accent-ink); border-radius:999px; font-size:12px; font-weight:600; margin-bottom:8px; text-transform:capitalize; }
-    .popup-info{ font-size:13px; line-height:1.6; color:var(--muted); }
+    .popup-info{ font-size:13px; line-height:1.6; color:var(--muted); margin-bottom:10px; }
     .popup-info strong{ color:var(--fg); }
     .badge{ display:inline-block; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; margin-top:6px; }
     .badge.verified{ background:#10b981; color:#fff; }
     .badge.unverified{ background:#f59e0b; color:#fff; }
     .badge.no-change{ background:#ef4444; color:#fff; }
-    .facilities{ display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
-    .facility-tag{ padding:3px 8px; background:#f3f4f6; border-radius:6px; font-size:11px; color:#6b7280; border:1px solid var(--border); }
+    
+    .navigate-btn{
+      display:block;
+      width:100%;
+      padding:10px 16px;
+      background:var(--accent);
+      border:2px solid var(--fg);
+      border-radius:8px;
+      color:var(--accent-ink);
+      font-weight:600;
+      font-size:14px;
+      text-align:center;
+      text-decoration:none;
+      margin-top:10px;
+      transition:all .15s;
+      font-family:'Poppins',sans-serif;
+    }
+    .navigate-btn:hover{
+      transform:translateY(-1px);
+      box-shadow:0 2px 8px rgba(0,0,0,.15);
+    }
 
     /* Floating action button */
     .fab{ position:absolute; bottom:16px; right:16px; width:56px; height:56px; border-radius:50%; border:2px solid #111; background:var(--accent); color:var(--accent-ink); font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.2); transition:transform .15s; z-index:1000; }
@@ -219,7 +250,7 @@
       .onboarding-modal { padding: 2rem 1.5rem; }
       .onboarding-title { font-size: 1.5rem; }
       .onboarding-icon { font-size: 3rem; }
-      .main { height: calc(100vh - 160px); }
+      .main { height: 350px; }
     }
   </style>
 </head>
@@ -259,7 +290,7 @@
     <header>
       <div class="container">
         <div class="brand">
-          <span class="brand-icon">📍</span>
+          <span class="brand-icon"><img src="https://mappychange.com/assets/pin.png" alt="MappyChange logo"></span>
           <span>MappyChange</span>
         </div>
         <p class="tagline">Helping you quickly find a safe, clean place to change your baby while out and about.</p>
@@ -287,7 +318,7 @@
     <footer>
       <p><strong>MappyChange</strong> — Built with ❤️ for Walthamstow parents</p>
       <p>Know a spot we're missing? <a href="#" class="contribute-btn">Suggest a Location</a></p>
-      <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">Always verify facilities before visiting • Updated Oct 2025</p>
+      <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">Updated Oct 2025</p>
     </footer>
   </div>
 
@@ -435,10 +466,9 @@
     }
 
     function createPopupContent(props) {
-      const facilities = props.additional_facilities || [];
-      const facilityTags = facilities.map(f => 
-        `<span class="facility-tag">${f.replace(/_/g, ' ')}</span>`
-      ).join('');
+      // Create Google Maps directions URL
+      const destination = encodeURIComponent(`${props.name}, ${props.address}, ${props.postcode}`);
+      const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}`;
 
       let badge = '';
       if (props.baby_change === 'no') {
@@ -459,7 +489,9 @@
           ${props.notes ? `<em style="font-size:12px;">${props.notes}</em>` : ''}
         </div>
         ${badge}
-        ${facilityTags ? `<div class="facilities">${facilityTags}</div>` : ''}
+        <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="navigate-btn">
+          🗺️ Navigate me there
+        </a>
       `;
     }
 
