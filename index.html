@@ -3,12 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>MappyChange</title>
+  <title>MappyChange - Walthamstow</title>
 
-  <!-- Fonts and MapLibre CSS -->
+  <!-- Fonts and Leaflet CSS -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
-  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-  <link rel="icon" href="assets/favicon.ico" />
+  <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📍</text></svg>">
 
   <style>
     :root{
@@ -16,127 +16,388 @@
     }
     *{ box-sizing:border-box; }
     html, body { height:100%; margin:0; background:var(--bg); color:var(--fg); font:16px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    .app{ display:grid; grid-template-rows:auto auto 1fr; min-height:100%; }
+    .app{ display:grid; grid-template-rows:auto 1fr; min-height:100%; }
     header{ border-bottom:1px solid var(--border); background:var(--bg); text-align:center; }
     .container{ max-width:1100px; margin:0 auto; padding:12px 16px; }
 
     /* Brand */
-    .brand{ display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Poppins',sans-serif; font-weight:600; }
-    .brand img{ height:32px; }
+    .brand{ display:flex; align-items:center; justify-content:center; gap:10px; font-family:'Poppins',sans-serif; font-weight:600; font-size:20px; }
+    .brand-icon{ font-size:32px; }
     .tagline{ margin:6px 0 0; font-size:14px; color:var(--muted); }
 
     /* Controls */
-    .controls{ display:grid; grid-template-columns:1fr; gap:8px; margin-top:12px; }
-    @media (min-width: 860px){
-      .controls{ grid-template-columns:1fr auto auto; align-items:center; }
-    }
-    .input, .btn{ padding:12px 14px; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--fg); font-size:16px; }
-    .btn{ cursor:pointer; font-weight:600; border-color:#111; }
-    .btn.accent{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
-    .btn:focus, .input:focus{ outline:2px solid var(--accent); outline-offset:2px; }
+    .controls{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; align-items:center; justify-content:center; }
+    .btn{ padding:10px 16px; border-radius:10px; border:1px solid var(--border); background:#fff; color:var(--fg); font-size:14px; cursor:pointer; font-weight:600; transition:all .15s; }
+    .btn:hover{ background:#fafafa; transform: translateY(-1px); }
+    .btn.active{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
+    .btn:focus{ outline:2px solid var(--accent); outline-offset:2px; }
 
-/* Results */
-.results-list{
-  max-height: 320px;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 10px 0 0;
-}
+    .stats{ font-size:13px; color:var(--muted); padding:8px 12px; }
 
-/* Card */
-.result-card{
-  display: grid;
-  grid-template-columns: 36px 1fr auto;
-  gap: 10px;
-  align-items: center;
-  background: #fff;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition: transform .06s ease, box-shadow .2s ease, background .15s ease;
-  box-shadow: 0 2px 4px rgba(0,0,0,.06);
-}
-.result-card:hover{ background:#fafafa; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,.08); }
-.result-card:focus-within{ outline: 2px solid var(--accent); outline-offset: 2px; }
-
-.card-icon{
-  width: 36px; height: 36px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 10px;
-  background: #fff7b3; /* soft yellow pad */
-  border: 1px solid var(--border);
-}
-.card-icon img{ width: 20px; height: 20px; display:block; }
-
-.card-main{ min-width: 0; }
-.card-title{
-  margin: 0; font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 15px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.card-sub{
-  margin: 2px 0 0; font-size: 13px; color: var(--muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-/* Chips row */
-.card-tags{ margin-top: 6px; display:flex; flex-wrap:wrap; gap:6px; }
-.tag{
-  font-size: 12px; padding: 3px 8px; border-radius: 999px;
-  border:1px solid var(--border); background:#fff;
-}
-.tag.accent{ background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-
-/* Distance column */
-.card-dist{
-  text-align: right; font-size: 12px; color: var(--muted);
-  min-width: 64px;
-}
-
-    
     /* Main layout */
-    .main{ position:relative; display:grid; grid-template-columns: 1fr; }
-    #map{ width:100%; height:520px; border-top:1px solid var(--border); }
-    @media (min-width: 1100px){
-      #map{ height:640px; }
-    }
+    .main{ position:relative; height:calc(100vh - 140px); }
+    #map{ width:100%; height:100%; }
+
+    /* Leaflet popup customization */
+    .leaflet-popup-content-wrapper{ border-radius:12px; padding:4px; }
+    .leaflet-popup-content{ margin:12px; min-width:200px; font-size:14px; }
+    
+    .popup-title{ font-family:'Poppins',sans-serif; font-weight:600; font-size:16px; margin:0 0 6px; }
+    .popup-category{ display:inline-block; padding:4px 10px; background:var(--accent); color:var(--accent-ink); border-radius:999px; font-size:12px; font-weight:600; margin-bottom:8px; text-transform:capitalize; }
+    .popup-info{ font-size:13px; line-height:1.6; color:var(--muted); }
+    .popup-info strong{ color:var(--fg); }
+    .badge{ display:inline-block; padding:4px 8px; border-radius:6px; font-size:11px; font-weight:600; margin-top:6px; }
+    .badge.verified{ background:#10b981; color:#fff; }
+    .badge.unverified{ background:#f59e0b; color:#fff; }
+    .badge.no-change{ background:#ef4444; color:#fff; }
+    .facilities{ display:flex; flex-wrap:wrap; gap:4px; margin-top:8px; }
+    .facility-tag{ padding:3px 8px; background:#f3f4f6; border-radius:6px; font-size:11px; color:#6b7280; border:1px solid var(--border); }
 
     /* Floating action button */
-    .fab{ position:absolute; bottom:16px; right:16px; width:56px; height:56px; border-radius:50%; border:2px solid #111; background:var(--accent); color:var(--accent-ink); font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+    .fab{ position:absolute; bottom:16px; right:16px; width:56px; height:56px; border-radius:50%; border:2px solid #111; background:var(--accent); color:var(--accent-ink); font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.2); transition:transform .15s; z-index:1000; }
+    .fab:hover{ transform:scale(1.05); }
     .fab:focus{ outline:3px solid #000; outline-offset:3px; }
+
+    /* Onboarding Modal */
+    .onboarding-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10000; padding: 1rem;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+      backdrop-filter: blur(4px);
+    }
+    .onboarding-overlay.show {
+      opacity: 1; pointer-events: all;
+    }
+
+    .onboarding-modal {
+      background: white; border-radius: 16px;
+      max-width: 520px; width: 100%;
+      padding: 2.5rem 2rem; position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      transform: scale(0.9) translateY(30px);
+      transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .onboarding-overlay.show .onboarding-modal {
+      transform: scale(1) translateY(0);
+    }
+
+    .onboarding-icon {
+      font-size: 4rem; text-align: center; margin-bottom: 1rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .onboarding-title {
+      font-family: 'Poppins', sans-serif; font-size: 1.75rem; font-weight: 600;
+      color: var(--fg); text-align: center; margin-bottom: 0.5rem;
+    }
+    .onboarding-subtitle {
+      font-size: 1.1rem; color: var(--fg); text-align: center;
+      margin-bottom: 2rem; font-weight: 500;
+    }
+    .onboarding-highlight {
+      background: linear-gradient(120deg, var(--accent) 0%, var(--accent) 100%);
+      background-size: 100% 40%; background-repeat: no-repeat;
+      background-position: 0 85%; padding: 0 4px;
+    }
+
+    .onboarding-benefits {
+      list-style: none; margin: 1.5rem 0; padding: 0;
+    }
+    .onboarding-benefits li {
+      padding: 0.875rem 0; font-size: 1rem; color: var(--fg);
+      display: flex; align-items: flex-start; gap: 0.875rem;
+      animation: slideIn 0.5s ease forwards;
+      opacity: 0; border-bottom: 1px solid var(--border);
+    }
+    .onboarding-benefits li:last-child { border-bottom: none; }
+    .onboarding-benefits li:nth-child(1) { animation-delay: 0.1s; }
+    .onboarding-benefits li:nth-child(2) { animation-delay: 0.2s; }
+    .onboarding-benefits li:nth-child(3) { animation-delay: 0.3s; }
+    .onboarding-benefits li:nth-child(4) { animation-delay: 0.4s; }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .onboarding-benefits li::before {
+      content: '✓'; background: var(--accent); color: var(--accent-ink);
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: bold; flex-shrink: 0; font-size: 1rem;
+      border: 2px solid var(--fg);
+    }
+
+    .onboarding-cta {
+      background: var(--accent); color: var(--accent-ink);
+      border: 2px solid var(--fg); padding: 1rem 2rem;
+      border-radius: 12px; font-size: 1.1rem; font-weight: 600;
+      cursor: pointer; width: 100%; margin-top: 1.5rem;
+      transition: all 0.2s; font-family: 'Poppins', sans-serif;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .onboarding-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    }
+
+    .onboarding-skip {
+      background: none; border: none; color: var(--muted);
+      font-size: 0.9rem; cursor: pointer; margin-top: 1rem;
+      width: 100%; padding: 0.5rem; transition: color 0.2s;
+    }
+    .onboarding-skip:hover { color: var(--fg); }
+
+    footer {
+      background: #fafafa; padding: 1.5rem;
+      text-align: center; color: var(--muted);
+      font-size: 0.9rem; border-top: 1px solid var(--border);
+    }
+    .contribute-btn {
+      display: inline-block; margin-top: 0.5rem;
+      padding: 0.5rem 1rem; background: var(--accent);
+      color: var(--accent-ink); text-decoration: none;
+      border-radius: 10px; font-weight: 600;
+      border: 1px solid var(--fg); transition: transform 0.2s;
+    }
+    .contribute-btn:hover { transform: translateY(-2px); }
+
+    @media (max-width: 768px) {
+      .onboarding-modal { padding: 2rem 1.5rem; }
+      .onboarding-title { font-size: 1.5rem; }
+      .onboarding-icon { font-size: 3rem; }
+      .main { height: calc(100vh - 160px); }
+    }
   </style>
 </head>
 <body>
   <div class="app">
+    <!-- Onboarding Modal -->
+    <div class="onboarding-overlay" id="onboardingOverlay">
+      <div class="onboarding-modal">
+        <div class="onboarding-icon">📍👶</div>
+        <h2 class="onboarding-title">Welcome to MappyChange</h2>
+        <p class="onboarding-subtitle">
+          <span class="onboarding-highlight">Never stress about nappy changes</span> when you're out with your little one
+        </p>
+        
+        <ul class="onboarding-benefits">
+          <li>
+            <span><strong>20+ verified spots</strong> across Walthamstow with baby change facilities</span>
+          </li>
+          <li>
+            <span><strong>Find what's nearby</strong> in seconds with our interactive map</span>
+          </li>
+          <li>
+            <span><strong>Filter by venue type</strong> — cafés, pubs, parks, shops & more</span>
+          </li>
+          <li>
+            <span><strong>See the details</strong> — accessibility, feeding rooms, parking info</span>
+          </li>
+        </ul>
+
+        <button class="onboarding-cta" onclick="closeOnboarding()">
+          Explore the Map
+        </button>
+        <button class="onboarding-skip" onclick="closeOnboarding()">Skip for now</button>
+      </div>
+    </div>
+
     <header>
       <div class="container">
         <div class="brand">
-          <img src="assets/pin.png" alt="MappyChange logo">
+          <span class="brand-icon">📍</span>
           <span>MappyChange</span>
         </div>
         <p class="tagline">Helping you quickly find a safe, clean place to change your baby while out and about.</p>
 
-        <!-- Controls -->
+        <!-- Filter Controls -->
         <div class="controls">
-          <input id="search" class="input" type="search" placeholder="Search by venue name, postcode or category (eg. pub)" autocomplete="off" />
-          <button id="searchBtn" class="btn accent" aria-label="Search">Search</button>
-          <button id="locate" class="btn" aria-label="Use my location">Use my location</button>
-          <!-- Results list (appears under controls on all sizes) -->
-          <div id="results" class="results-list" style="grid-column: 1 / -1;"></div>
+          <button class="btn active" data-filter="all">All</button>
+          <button class="btn" data-filter="cafe">Cafés</button>
+          <button class="btn" data-filter="restaurant">Restaurants</button>
+          <button class="btn" data-filter="pub">Pubs</button>
+          <button class="btn" data-filter="shopping">Shopping</button>
+          <button class="btn" data-filter="supermarket">Supermarkets</button>
+          <button class="btn" data-filter="leisure">Leisure</button>
+          <button class="btn" data-filter="park">Parks</button>
+          <button class="btn" data-filter="museum">Museums</button>
+          <span class="stats" id="stats">Loading...</span>
         </div>
       </div>
     </header>
 
     <div class="main">
       <div id="map" role="application" aria-label="Map of baby changing places"></div>
-      <button id="fab-suggest" class="fab" title="Suggest a place" aria-label="Suggest a place">+</button>
+      <button class="fab" title="Suggest a place" aria-label="Suggest a place">+</button>
     </div>
+
+    <footer>
+      <p><strong>MappyChange</strong> — Built with ❤️ for Walthamstow parents</p>
+      <p>Know a spot we're missing? <a href="#" class="contribute-btn">Suggest a Location</a></p>
+      <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">Always verify facilities before visiting • Updated Oct 2025</p>
+    </footer>
   </div>
 
-  <!-- MapLibre and your script -->
-  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
-  <script src="assets/script.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Onboarding functionality
+    function closeOnboarding() {
+      const overlay = document.getElementById('onboardingOverlay');
+      overlay.style.opacity = '0';
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 300);
+      localStorage.setItem('mappychange_visited', 'true');
+    }
+
+    // Show onboarding for first-time visitors
+    window.addEventListener('DOMContentLoaded', () => {
+      const hasVisited = localStorage.getItem('mappychange_visited');
+      if (!hasVisited) {
+        setTimeout(() => {
+          document.getElementById('onboardingOverlay').classList.add('show');
+        }, 600);
+      }
+    });
+
+    // Close when clicking overlay
+    document.getElementById('onboardingOverlay').addEventListener('click', (e) => {
+      if (e.target.id === 'onboardingOverlay') {
+        closeOnboarding();
+      }
+    });
+
+    // GeoJSON data
+    const facilitiesData = {
+      "type": "FeatureCollection",
+      "features": [
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.0197, 51.58327]}, "properties": {"name": "Goose Walthamstow", "category": "pub", "address": "264 Hoe Street", "postcode": "E17 3AX", "baby_change": "yes", "changing_location": "public toilet behind bar", "accessible_to": "all", "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.017091, 51.590282]}, "properties": {"name": "The Bell Walthamstow", "category": "pub", "address": "617 Forest Road", "postcode": "E17 4NE", "baby_change": "yes", "changing_location": "all-gender loo downstairs", "accessible_to": "all", "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.05414, 51.58548]}, "properties": {"name": "Walthamstow Wetlands Visitor Centre", "category": "nature reserve", "address": "2 Forest Road", "postcode": "N17 9NH", "baby_change": "yes", "changing_location": "visitor centre toilets", "accessible_to": "all", "additional_facilities": ["cafe", "parking", "accessible_toilet"], "verified": false, "notes": "Needs verification"}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.02233, 51.58876]}, "properties": {"name": "Eat17", "category": "restaurant", "address": "28-30 Orford Road", "postcode": "E17 9NJ", "baby_change": "yes", "changing_location": "accessible to both parents", "accessible_to": "all", "additional_facilities": ["highchairs", "family_friendly"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.0201, 51.5891]}, "properties": {"name": "Arte e Pasta", "category": "restaurant", "address": "Shernhall Street", "postcode": "E17 9HU", "baby_change": "yes", "changing_location": "accessible to both parents", "accessible_to": "all", "additional_facilities": ["highchairs", "family_friendly"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.02218, 51.58868]}, "properties": {"name": "The Kitchen", "category": "restaurant", "address": "Orford Road", "postcode": "E17 9NJ", "baby_change": "yes", "changing_location": "restroom facilities", "accessible_to": "all", "additional_facilities": ["highchairs", "brunch_menu"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01984, 51.58291]}, "properties": {"name": "17 & Central Shopping Mall", "category": "shopping", "address": "Selborne Walk", "postcode": "E17 7JR", "baby_change": "yes", "changing_location": "parent & baby room next to CRATE", "accessible_to": "all", "additional_facilities": ["feeding_room", "soft_seating", "accessible_toilet", "parking"], "verified": true, "notes": "Private feeding rooms available"}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01986, 51.58284]}, "properties": {"name": "Asda Walthamstow", "category": "supermarket", "address": "19 Selborne Walk", "postcode": "E17 7LS", "baby_change": "yes", "changing_location": "customer toilets", "accessible_to": "all", "additional_facilities": ["parking"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.02054, 51.58348]}, "properties": {"name": "Sainsbury's Walthamstow", "category": "supermarket", "address": "112 High Street", "postcode": "E17 7JY", "baby_change": "yes", "changing_location": "customer toilets", "accessible_to": "all", "additional_facilities": ["parking", "lift_access"], "verified": false}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01953, 51.58244]}, "properties": {"name": "Walthamstow Leisure Centre", "category": "leisure", "address": "Kirkdale Road", "postcode": "E17 8RN", "baby_change": "yes", "changing_location": "changing rooms", "accessible_to": "all", "additional_facilities": ["swimming_pool", "gym", "parking"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01988, 51.58295]}, "properties": {"name": "CRATE Walthamstow", "category": "entertainment", "address": "17 & Central", "postcode": "E17 7JR", "baby_change": "yes", "changing_location": "parent & baby room nearby", "accessible_to": "all", "additional_facilities": ["soft_play", "food", "drinks"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.02021, 51.58332]}, "properties": {"name": "Walthamstow Library", "category": "library", "address": "High Street", "postcode": "E17 7JN", "baby_change": "yes", "changing_location": "accessible toilets", "accessible_to": "all", "additional_facilities": ["childrens_area", "buggy_parking"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01285, 51.59063]}, "properties": {"name": "William Morris Gallery", "category": "museum", "address": "Lloyd Park", "postcode": "E17 4PP", "baby_change": "yes", "changing_location": "gallery toilets", "accessible_to": "all", "additional_facilities": ["parking", "cafe"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.03021, 51.57663]}, "properties": {"name": "Walthamstow Pumphouse Museum", "category": "museum", "address": "South Access Road", "postcode": "E17 8AX", "baby_change": "yes", "changing_location": "toilet facilities", "accessible_to": "all", "verified": true, "notes": "Open 2nd & 4th Sunday"}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01293, 51.59051]}, "properties": {"name": "Lloyd Park - Aveling Centre", "category": "park", "address": "Forest Road", "postcode": "E17 4PP", "baby_change": "yes", "changing_location": "centre toilets", "accessible_to": "all", "additional_facilities": ["cafe", "playground", "parking"], "verified": true}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01986, 51.58289]}, "properties": {"name": "Walthamstow Central Station", "category": "transport", "address": "Station Approach", "postcode": "E17 7LT", "baby_change": "no", "changing_location": "n/a", "accessible_to": "none", "verified": true, "notes": "No facilities"}},
+        {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-0.01994, 51.58298]}, "properties": {"name": "Costa Coffee", "category": "cafe", "address": "17 & Central", "postcode": "E17 7JR", "baby_change": "yes", "changing_location": "customer toilets", "accessible_to": "all", "verified": false}}
+      ]
+    };
+
+    // Initialize map
+    const map = L.map('map').setView([51.5860, -0.0220], 14);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    let markers = [];
+    let currentFilter = 'all';
+
+    // Custom pin icon matching MappyChange style
+    function createIcon(hasChange) {
+      const color = hasChange === 'yes' ? '#ffd300' : '#cccccc';
+      return L.divIcon({
+        className: 'custom-pin',
+        html: `<div style="width:24px; height:32px; position:relative;">
+          <svg width="24" height="32" viewBox="0 0 24 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 0C5.37 0 0 5.37 0 12C0 21 12 32 12 32C12 32 24 21 24 12C24 5.37 18.63 0 12 0Z" fill="${color}" stroke="#111" stroke-width="2"/>
+            <circle cx="12" cy="11" r="5" fill="#111"/>
+            ${hasChange === 'yes' ? '<path d="M9 11L11 13L15 9" stroke="#ffd300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' : '<path d="M9 9L15 15M15 9L9 15" stroke="#999" stroke-width="2" stroke-linecap="round"/>'}
+          </svg>
+        </div>`,
+        iconSize: [24, 32],
+        iconAnchor: [12, 32],
+        popupAnchor: [0, -32]
+      });
+    }
+
+    function createPopupContent(props) {
+      const facilities = props.additional_facilities || [];
+      const facilityTags = facilities.map(f => 
+        `<span class="facility-tag">${f.replace(/_/g, ' ')}</span>`
+      ).join('');
+
+      let badge = '';
+      if (props.baby_change === 'no') {
+        badge = '<span class="badge no-change">No baby change</span>';
+      } else if (props.verified) {
+        badge = '<span class="badge verified">Verified ✓</span>';
+      } else {
+        badge = '<span class="badge unverified">Needs verification</span>';
+      }
+
+      return `
+        <div class="popup-title">${props.name}</div>
+        <span class="popup-category">${props.category}</span>
+        <div class="popup-info">
+          <strong>Address:</strong> ${props.address}<br>
+          <strong>Postcode:</strong> ${props.postcode}<br>
+          ${props.baby_change === 'yes' ? `<strong>Location:</strong> ${props.changing_location}<br>` : ''}
+          ${props.notes ? `<em style="font-size:12px;">${props.notes}</em>` : ''}
+        </div>
+        ${badge}
+        ${facilityTags ? `<div class="facilities">${facilityTags}</div>` : ''}
+      `;
+    }
+
+    function addMarkers(filter = 'all') {
+      markers.forEach(m => map.removeLayer(m));
+      markers = [];
+
+      let count = 0;
+      let withChange = 0;
+
+      facilitiesData.features.forEach(feature => {
+        const props = feature.properties;
+        
+        if (filter === 'all' || props.category === filter) {
+          const [lng, lat] = feature.geometry.coordinates;
+          const marker = L.marker([lat, lng], {
+            icon: createIcon(props.baby_change)
+          }).addTo(map);
+          
+          marker.bindPopup(createPopupContent(props), {
+            maxWidth: 300,
+            className: 'custom-popup'
+          });
+          markers.push(marker);
+          count++;
+          if (props.baby_change === 'yes') withChange++;
+        }
+      });
+
+      document.getElementById('stats').textContent = 
+        `${count} location${count !== 1 ? 's' : ''} • ${withChange} with baby change`;
+    }
+
+    // Filter functionality
+    document.querySelector('.controls').addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn') && e.target.dataset.filter) {
+        document.querySelectorAll('.btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.dataset.filter;
+        addMarkers(currentFilter);
+      }
+    });
+
+    addMarkers();
+  </script>
 </body>
 </html>
