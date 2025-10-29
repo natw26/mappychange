@@ -131,7 +131,16 @@
     }
 
     /* Floating action button */
-    .fab{ position:absolute; bottom:16px; right:16px; width:56px; height:56px; border-radius:50%; border:2px solid #111; background:var(--accent); color:var(--accent-ink); font-size:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.2); transition:transform .15s; z-index:1000; }
+    .fab{ 
+      position:absolute; bottom:16px; right:16px; 
+      width:56px; height:56px; border-radius:50%; 
+      border:2px solid #111; background:var(--accent); 
+      color:var(--accent-ink); font-size:28px; 
+      display:flex; align-items:center; justify-content:center; 
+      cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,.2); 
+      transition:transform .15s; z-index:1000; 
+      text-decoration:none;
+    }
     .fab:hover{ transform:scale(1.05); }
     .fab:focus{ outline:3px solid #000; outline-offset:3px; }
 
@@ -162,8 +171,8 @@
     }
 
     .onboarding-icon {
-      font-size: 4rem; text-align: center; margin-bottom: 1rem;
-      animation: float 3s ease-in-out infinite;
+      text-align: center; margin-bottom: 1rem;
+      display: flex; align-items: center; justify-content: center;
     }
     @keyframes float {
       0%, 100% { transform: translateY(0px); }
@@ -205,10 +214,12 @@
     }
 
     .onboarding-benefits li::before {
-      content: '✓'; background: var(--accent); color: var(--accent-ink);
-      width: 28px; height: 28px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: bold; flex-shrink: 0; font-size: 1rem;
+      content: ''; 
+      width: 8px; height: 8px; 
+      background: var(--accent); 
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 6px;
       border: 2px solid var(--fg);
     }
 
@@ -259,31 +270,31 @@
     <!-- Onboarding Modal -->
     <div class="onboarding-overlay" id="onboardingOverlay">
       <div class="onboarding-modal">
-        <div class="onboarding-icon">📍👶</div>
+        <div class="onboarding-icon"><img src="https://mappychange.com/assets/pin.png" alt="MappyChange" style="width:80px; height:80px; animation: float 3s ease-in-out infinite;"></div>
         <h2 class="onboarding-title">Welcome to MappyChange</h2>
         <p class="onboarding-subtitle">
-          <span class="onboarding-highlight">Never stress about nappy changes</span> when you're out with your little one
+          <span class="onboarding-highlight">Find baby change facilities</span> in seconds when you're out in Walthamstow
         </p>
         
         <ul class="onboarding-benefits">
           <li>
-            <span><strong>20+ verified spots</strong> across Walthamstow with baby change facilities</span>
+            <span><strong>📍 Search near you</strong> — tap "Search near my location" and we'll show what's closest</span>
           </li>
           <li>
-            <span><strong>Find what's nearby</strong> in seconds with our interactive map</span>
+            <span><strong>🗺️ Navigate instantly</strong> — click any pin and hit "Navigate me there" for Google Maps directions</span>
           </li>
           <li>
-            <span><strong>Filter by venue type</strong> — cafés, pubs, parks, shops & more</span>
+            <span><strong>🏪 Filter by type</strong> — cafés & restaurants, shops, or public loos & museums</span>
           </li>
           <li>
-            <span><strong>See the details</strong> — accessibility, feeding rooms, parking info</span>
+            <span><strong>✓ 20+ verified spots</strong> — real locations with baby change facilities across Walthamstow</span>
           </li>
         </ul>
 
         <button class="onboarding-cta" onclick="closeOnboarding()">
-          Explore the Map
+          Start Exploring
         </button>
-        <button class="onboarding-skip" onclick="closeOnboarding()">Skip for now</button>
+        <button class="onboarding-skip" onclick="closeOnboarding()">Skip intro</button>
       </div>
     </div>
 
@@ -312,12 +323,12 @@
 
     <div class="main">
       <div id="map" role="application" aria-label="Map of baby changing places"></div>
-      <button class="fab" title="Suggest a place" aria-label="Suggest a place">+</button>
+      <a href="https://forms.gle/vTJLoicMfhjrpRYv6" target="_blank" rel="noopener noreferrer" class="fab" title="Suggest a place" aria-label="Suggest a place">+</a>
     </div>
 
     <footer>
       <p><strong>MappyChange</strong> — Built with ❤️ for Walthamstow parents</p>
-      <p>Know a spot we're missing? <a href="#" class="contribute-btn">Suggest a Location</a></p>
+      <p>Know a spot we're missing? <a href="https://forms.gle/vTJLoicMfhjrpRYv6" target="_blank" rel="noopener noreferrer" class="contribute-btn">Suggest a Location</a></p>
       <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">Updated Oct 2025</p>
     </footer>
   </div>
