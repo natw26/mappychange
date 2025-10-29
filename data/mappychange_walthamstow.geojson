@@ -5,7 +5,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0198493, 51.5834223]
+        "coordinates": [-0.0190552, 51.5833762]
       },
       "properties": {
         "name": "Goose Walthamstow",
@@ -61,7 +61,7 @@
         "address": "28-30 Orford Road",
         "postcode": "E17 9NJ",
         "baby_change": "yes",
-        "changing_location": "changing tables in loos accessible to all genders",
+        "changing_location": "changing tables in the loos accessible to all genders",
         "verified": true
       }
     },
@@ -102,7 +102,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0437212, 51.5952858]
+        "coordinates": [-0.0272078, 51.5827727]
       },
       "properties": {
         "name": "Sainsbury's Walthamstow",
@@ -118,7 +118,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0311742, 51.5758523]
+        "coordinates": [-0.0284524, 51.57591]
       },
       "properties": {
         "name": "Walthamstow Leisure Centre",
@@ -134,7 +134,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0237419, 51.5843324]
+        "coordinates": [-0.0210573, 51.5842865]
       },
       "properties": {
         "name": "Walthamstow Library",
@@ -150,7 +150,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0228598, 51.5912678]
+        "coordinates": [-0.0202753, 51.5912847]
       },
       "properties": {
         "name": "William Morris Gallery",
@@ -184,7 +184,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0218803, 51.5935402]
+        "coordinates": [-0.0211477, 51.5936683]
       },
       "properties": {
         "name": "Lloyd Park Centre",
@@ -201,7 +201,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0240732, 51.5878076]
+        "coordinates": [-0.0215039, 51.5877721]
       },
       "properties": {
         "name": "Greenleaf Road Baptist Church",
@@ -218,7 +218,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0184274, 51.6033249]
+        "coordinates": [-0.0159046, 51.6033181]
       },
       "properties": {
         "name": "Walthamstow Stadium (Better Gym)",
@@ -235,7 +235,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0019674, 51.5749549]
+        "coordinates": [-0.0021673, 51.5750834]
       },
       "properties": {
         "name": "The Cornerstone",
@@ -252,7 +252,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0235354, 51.5907135]
+        "coordinates": [-0.0209357, 51.5906977]
       },
       "properties": {
         "name": "Walthamstow Salvation Army",
@@ -261,7 +261,7 @@
         "postcode": "E17 4PY",
         "baby_change": "yes",
         "changing_location": "in The Meeting Place facilities",
-        "verified": true,
+        "verified": false,
         "notes": "The Meeting Place - has play space"
       }
     },
@@ -269,7 +269,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0371749, 51.581356]
+        "coordinates": [-0.0345755, 51.5813353]
       },
       "properties": {
         "name": "The Mill",
@@ -277,7 +277,7 @@
         "address": "7-11 Coppermill Lane",
         "postcode": "E17 7HA",
         "baby_change": "yes",
-        "changing_location": "baby change in accessible toilets",
+        "changing_location": "baby change in the accessible toilets",
         "verified": true,
         "notes": "Children's playroom for under 5s"
       }
@@ -286,7 +286,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0296598, 51.5936904]
+        "coordinates": [-0.0269353, 51.5936782]
       },
       "properties": {
         "name": "Priory Court Community Centre",
@@ -294,7 +294,7 @@
         "address": "11 Priory Court",
         "postcode": "E17 5NB",
         "baby_change": "yes",
-        "changing_location": "baby change in the women's loos",
+        "changing_location": "baby change in the accessible toilet",
         "verified": false,
         "notes": "Closed at the weekend"
       }
@@ -319,7 +319,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0156041509369, 51.5901480948406]
+        "coordinates": [-0.0160095, 51.5900271]
       },
       "properties": {
         "name": "Enjoy Café",
@@ -335,7 +335,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.020286290556566, 51.5882196586144]
+        "coordinates": [-0.0208127, 51.5880706]
       },
       "properties": {
         "name": "Le Delice Restaurant",
@@ -351,7 +351,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.0183261822375, 51.5837207038538]
+        "coordinates": [-0.019075, 51.5835931]
       },
       "properties": {
         "name": "McDonald's - Walthamstow",
@@ -367,7 +367,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.00514047705989, 51.5872792967556]
+        "coordinates": [-0.0037225, 51.5871666]
       },
       "properties": {
         "name": "Wood Street Library",
@@ -383,7 +383,7 @@
       "type": "Feature",
       "geometry": {
         "type": "Point",
-        "coordinates": [-0.039754800519192, 51.5875389545768]
+        "coordinates": [-0.0403076, 51.587401]
       },
       "properties": {
         "name": "Yasar Kebab & Steak's",
